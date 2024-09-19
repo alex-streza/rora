@@ -28,18 +28,25 @@ export const auroraSightingRouter = createTRPCRouter({
         userId: ctx.auth.userId,
       });
 
-      console.log("data ->", data);
       return {
         message: "Aurora moment submitted succesfully",
       };
     }),
 
   getLatest: publicProcedure
-    .input(z.object({ search: z.string().optional() }))
+    .input(
+      z.object({
+        search: z.string().optional(),
+        since: z.date().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const sightings = await ctx.db.query.submissions.findMany({
-        where: (submissions, { like }) =>
-          like(submissions.location, `%${input.search}%`),
+        where: (submissions, { like, gte, and }) =>
+          and(
+            like(submissions.location, `%${input.search ?? ""}%`),
+            // input.since && gte(submissions.createdAt, input.since),
+          ),
         orderBy: (submissions, { desc }) => [desc(submissions.createdAt)],
       });
 

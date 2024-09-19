@@ -10,6 +10,7 @@ import { DialogClose } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { api } from "~/trpc/react";
 import { userPositionAtom } from "./user-position";
+import spacetime from "spacetime";
 
 const compressAndConvertToWebP = (
   file: File,
@@ -66,13 +67,21 @@ const compressAndConvertToWebP = (
   });
 };
 
-export const SubmitSighting = () => {
+export const SubmitSighting = ({
+  location,
+  url,
+  distance,
+  createdAt,
+}: {
+  location?: string;
+  url?: string;
+  distance?: number;
+  createdAt?: Date;
+}) => {
   const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(url);
 
   const position = useAtomValue(userPositionAtom);
-
-  const location = "Your awesome location";
 
   const submitAurora = api.aurora.submit.useMutation();
 
@@ -92,11 +101,9 @@ export const SubmitSighting = () => {
     //     onClick: () => {},
     //   },
     // });
-    // return;
 
     if (file) {
       try {
-        console.log("file ->", file);
         const compressedBlob = await compressAndConvertToWebP(file);
         const formData = new FormData();
         formData.append("image", compressedBlob);
@@ -129,7 +136,7 @@ export const SubmitSighting = () => {
 
   return (
     <>
-      <h2 className="text-xl">Save Aurora Moment</h2>
+      {!url && <h2 className="text-xl">Save Aurora Moment</h2>}
       <label className="-mb-2 text-sm text-muted">Location</label>
       <div className="relative">
         <Gps
@@ -139,17 +146,19 @@ export const SubmitSighting = () => {
         />
         <Input value={location} className="pl-10" disabled />
       </div>
-      <div className="relative mb-6 overflow-hidden">
-        <input
-          type="file"
-          onChange={handleFileChange}
-          accept="image/*"
-          className="hidden"
-          id="aurora-image-upload"
-        />
+      <div className="r relative mb-2 h-64 overflow-hidden">
+        {!url && (
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+            id="aurora-image-upload"
+          />
+        )}
         <label
           htmlFor="aurora-image-upload"
-          className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-input/50 transition"
+          className="flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-input/50 transition"
         >
           {previewUrl ? (
             <NImage
@@ -168,16 +177,31 @@ export const SubmitSighting = () => {
             </>
           )}
         </label>
+        {createdAt && (
+          <div className="absolute bottom-0 left-0 flex w-full items-center gap-2 bg-gradient-to-b from-transparent to-input p-3">
+            <div className="flex items-center gap-2 text-sm">
+              <span>{spacetime(createdAt).fromNow(new Date()).qualified}</span>
+              {distance && (
+                <>
+                  <span>•</span>
+                  <span>{distance} km away</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
-      <DialogClose className="w-full" disabled={!file}>
-        <Button
-          className="w-full rounded-full"
-          disabled={!file}
-          onClick={handleSubmit}
-        >
-          Submit sighting
-        </Button>
-      </DialogClose>
+      {!url && (
+        <DialogClose className="w-full" disabled={!file}>
+          <Button
+            className="w-full rounded-full"
+            disabled={!file}
+            onClick={handleSubmit}
+          >
+            Submit sighting
+          </Button>
+        </DialogClose>
+      )}
     </>
   );
 };

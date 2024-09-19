@@ -1,5 +1,4 @@
-import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { ChatTeardropDots, Image } from "@phosphor-icons/react/dist/ssr";
+import { SignedOut } from "@clerk/nextjs";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -9,18 +8,15 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { HydrateClient } from "~/trpc/server";
-import { Avatar } from "./_components/auth/avatar";
 import { SignInButton } from "./_components/auth/sign-in-button";
-import { SightingsDrawer } from "./_components/map/drawer";
-import { UserPosition } from "./_components/map/user-position";
-import { SubmitSighting } from "./_components/map/submit-sighting";
 import AuroraMap from "./_components/map";
+import { SightingsDrawer } from "./_components/map/drawer";
 import { Navigation } from "./_components/navigation";
 
 export default async function Home() {
   return (
     <HydrateClient>
-      <main className="relative mx-auto h-screen w-full max-w-md border-border bg-card md:border-x">
+      <main className="relative mx-auto h-screen w-full max-w-md overflow-hidden border-border bg-card md:border-x">
         <AuroraMap />
         <div className="relative">
           <Navigation />
@@ -49,26 +45,6 @@ export default async function Home() {
             </div>
           </SignedOut>
         </div>
-        <Button
-          className="absolute bottom-52 left-1.5 gap-2"
-          variant="secondary"
-        >
-          <ChatTeardropDots weight="duotone" size="24" /> Can I see the northern
-          lights?
-        </Button>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              className="absolute bottom-52 right-1.5 rounded-full"
-              size="icon"
-            >
-              <Image weight="duotone" size="24" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <SubmitSighting />
-          </DialogContent>
-        </Dialog>
         <SightingsDrawer />
       </main>
     </HydrateClient>

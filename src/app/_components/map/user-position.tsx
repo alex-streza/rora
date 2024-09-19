@@ -1,7 +1,7 @@
 "use client";
-import { GpsFix } from "@phosphor-icons/react";
+import { CircleNotch, GpsFix } from "@phosphor-icons/react";
 import { atom, useAtom } from "jotai";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 
 export const userPositionAtom = atom<GeolocationPosition | null>(null);
@@ -11,15 +11,15 @@ const noop = () => {};
 
 export const UserPosition = () => {
   const [position, setPosition] = useAtom(userPositionAtom);
+  const [loading, setLoading] = useState(false);
 
   const handleGetPosition = useCallback(
     async ({ shouldRequest = true }) => {
-      console.log("handleGetPosition ->", position);
+      setLoading(true);
       try {
         const permission = await navigator.permissions.query({
           name: "geolocation",
         });
-        console.log("permission ->", permission);
         if (permission.state === "granted") {
           navigator.geolocation.getCurrentPosition(
             (position) => setPosition(position),
@@ -43,6 +43,7 @@ export const UserPosition = () => {
       } catch (error) {
         console.error("Error:", error);
       }
+      setLoading(false);
     },
     [position, setPosition],
   );
@@ -57,8 +58,12 @@ export const UserPosition = () => {
       variant={position ? "default" : "outline"}
       className="rounded-full"
       onClick={() => handleGetPosition({ shouldRequest: true })}
+      disabled={loading}
     >
-      <GpsFix size={24} weight="duotone" />
+      {!loading && <GpsFix size={24} weight="duotone" />}
+      {loading && (
+        <CircleNotch size={24} weight="duotone" className="animate-spin" />
+      )}
     </Button>
   );
 };

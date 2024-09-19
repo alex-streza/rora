@@ -36,7 +36,12 @@
   * {
     @apply border-border;
   }
+
+  .outline-me {
+    @apply outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
   body {
-    @apply bg-card text-foreground !pointer-events-auto;
+    @apply !pointer-events-auto bg-card text-foreground;
   }
 }
