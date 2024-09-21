@@ -1,10 +1,9 @@
 "use client";
 
-import { Gps, Panorama } from "@phosphor-icons/react";
-import { useAtom, useAtomValue } from "jotai";
+import { Gps, Camera } from "@phosphor-icons/react";
+import { useAtomValue } from "jotai";
 import NImage from "next/image";
-import React, { useState } from "react";
-import { toast } from "sonner";
+import React, { useState, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogClose } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
@@ -13,57 +12,44 @@ import { userPositionAtom } from "./user-position";
 import spacetime from "spacetime";
 
 const compressAndConvertToWebP = (
-  file: File,
+  imageData: string,
   quality = 0.8,
   maxWidth = 1920,
 ): Promise<Blob> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
 
-        // Resize if width is greater than maxWidth
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
 
-        canvas.width = width;
-        canvas.height = height;
+      canvas.width = width;
+      canvas.height = height;
 
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
 
-        // Check if the browser supports toBlob with type 'image/webp'
-        if (canvas.toBlob) {
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error("Compression failed"));
-              }
-            },
-            "image/webp",
-            quality,
-          );
-        } else {
-          reject(new Error("Browser does not support canvas.toBlob"));
-        }
-      };
-      img.onerror = () => {
-        reject(new Error("Failed to load image"));
-      };
-      img.src = event.target.result as string;
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error("Compression failed"));
+          }
+        },
+        "image/webp",
+        quality,
+      );
     };
-    reader.onerror = () => {
-      reject(new Error("Failed to read file"));
+    img.onerror = () => {
+      reject(new Error("Failed to load image"));
     };
-    reader.readAsDataURL(file);
+    img.src = imageData;
   });
 };
 
@@ -78,33 +64,52 @@ export const SubmitSighting = ({
   distance?: number;
   createdAt?: Date;
 }) => {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(url);
+  const [capturedImage, setCapturedImage] = useState<string | null>(url);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const position = useAtomValue(userPositionAtom);
 
   const submitAurora = api.aurora.submit.useMutation();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+    }
+  };
+
+  const captureImage = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext("2d");
+      context.drawImage(
+        videoRef.current,
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height,
+      );
+      const imageDataUrl = canvasRef.current.toDataURL("image/jpeg");
+      setCapturedImage(imageDataUrl);
+      stopCamera();
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach((track) => track.stop());
     }
   };
 
   const handleSubmit = async () => {
-    // toast("Aurora moment submitted succesfully", {
-    //   description: location,
-    //   action: {
-    //     label: "View",
-    //     onClick: () => {},
-    //   },
-    // });
-
-    if (file) {
+    if (capturedImage) {
       try {
-        const compressedBlob = await compressAndConvertToWebP(file);
+        const compressedBlob = await compressAndConvertToWebP(capturedImage);
         const formData = new FormData();
         formData.append("image", compressedBlob);
         formData.append("location", location);
@@ -124,7 +129,6 @@ export const SubmitSighting = ({
 
         if (response.ok) {
           console.log("Aurora moment submitted successfully");
-          // Reset the form or show a success message
         } else {
           console.error("Failed to submit aurora moment");
         }
@@ -136,7 +140,7 @@ export const SubmitSighting = ({
 
   return (
     <>
-      {!url && <h2 className="text-xl">Save Aurora Moment</h2>}
+      {!url && <h2 className="text-xl">Capture Aurora Moment</h2>}
       <label className="-mb-2 text-sm text-muted">Location</label>
       <div className="relative">
         <Gps
@@ -146,37 +150,40 @@ export const SubmitSighting = ({
         />
         <Input value={location} className="pl-10" disabled />
       </div>
-      <div className="r relative mb-2 h-64 overflow-hidden">
-        {!url && (
-          <input
-            type="file"
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-            id="aurora-image-upload"
+      <div className="relative mb-2 h-64 overflow-hidden">
+        {!capturedImage ? (
+          <>
+            <video
+              ref={videoRef}
+              autoPlay
+              className="h-full w-full object-cover"
+            />
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+              width="1280"
+              height="720"
+            />
+            <Button onClick={startCamera} className="absolute bottom-4 left-4">
+              Start Camera
+            </Button>
+            <Button
+              onClick={captureImage}
+              className="absolute bottom-4 right-4"
+            >
+              <Camera size={24} weight="duotone" />
+              Capture
+            </Button>
+          </>
+        ) : (
+          <NImage
+            src={capturedImage}
+            alt="Aurora preview"
+            layout="fill"
+            objectFit="cover"
+            className="rounded-lg"
           />
         )}
-        <label
-          htmlFor="aurora-image-upload"
-          className="flex h-full w-full cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-input/50 transition"
-        >
-          {previewUrl ? (
-            <NImage
-              src={previewUrl}
-              alt="Aurora preview"
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
-            />
-          ) : (
-            <>
-              <span className="flex flex-col items-center gap-2 text-muted">
-                <Panorama weight="duotone" size={24} />
-                capture an aurora moment
-              </span>
-            </>
-          )}
-        </label>
         {createdAt && (
           <div className="absolute bottom-0 left-0 flex w-full items-center gap-2 bg-gradient-to-b from-transparent to-input p-3">
             <div className="flex items-center gap-2 text-sm">
@@ -192,10 +199,10 @@ export const SubmitSighting = ({
         )}
       </div>
       {!url && (
-        <DialogClose className="w-full" disabled={!file}>
+        <DialogClose className="w-full" disabled={!capturedImage}>
           <Button
             className="w-full rounded-full"
-            disabled={!file}
+            disabled={!capturedImage}
             onClick={handleSubmit}
           >
             Submit sighting

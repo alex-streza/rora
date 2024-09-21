@@ -51,6 +51,11 @@ const Layers = () => {
 
     fetch(
       "https://avpiytgvzfbbfmnmycdj.supabase.co/storage/v1/object/public/geojsons/aurora_forecast.geojson",
+      {
+        headers: {
+          "Cache-Control": "max-age=900",
+        },
+      },
     )
       .then((res) => res.json())
       .then((data: GeoJsonData) => {
@@ -132,13 +137,12 @@ export const viewStateAtom = atom<ViewState>({
   pitch: 0,
 });
 
+const since = spacetime().add(-7, "day").toNativeDate();
+
 export default function AuroraMap() {
   const mapRef = useRef<MapRef>(null);
 
   const position = useAtomValue(userPositionAtom);
-
-  const since = useMemo(() => spacetime().add(-1, "day").toNativeDate(), []);
-
   const { data } = api.aurora.getLatest.useQuery({
     since,
   });
@@ -190,7 +194,7 @@ export default function AuroraMap() {
       });
     }
 
-    return filteredSightings.map((sighting) => ({
+    return data.map((sighting) => ({
       ...sighting,
       distance: undefined,
     }));

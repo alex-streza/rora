@@ -45,3 +45,9 @@
     @apply !pointer-events-auto bg-card text-foreground;
   }
 }
+
+@supports (env(safe-area-inset-top)) {
+  .content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

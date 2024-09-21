@@ -8,7 +8,7 @@ export const SignInButton = () => {
 
   return (
     <Button
-      className="rounded-full"
+      className="items-center gap-2 rounded-full"
       onClick={() =>
         signIn?.authenticateWithRedirect({
           strategy: "oauth_google",

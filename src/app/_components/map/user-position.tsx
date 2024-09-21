@@ -9,7 +9,7 @@ export const userPositionAtom = atom<GeolocationPosition | null>(null);
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
-export const UserPosition = () => {
+export const usePosition = () => {
   const [position, setPosition] = useAtom(userPositionAtom);
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +51,16 @@ export const UserPosition = () => {
   useEffect(() => {
     handleGetPosition({ shouldRequest: false }).then(noop).catch(noop);
   }, []);
+
+  return {
+    position,
+    loading,
+    handleGetPosition,
+  };
+};
+
+export const UserPosition = () => {
+  const { position, loading, handleGetPosition } = usePosition();
 
   return (
     <Button

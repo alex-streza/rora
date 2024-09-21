@@ -42,13 +42,15 @@ export const auroraSightingRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const sightings = await ctx.db.query.submissions.findMany({
-        where: (submissions, { like, gte, and }) =>
+        where: (submissions, { ilike, gte, and }) =>
           and(
-            like(submissions.location, `%${input.search ?? ""}%`),
-            // input.since && gte(submissions.createdAt, input.since),
+            ilike(submissions.location, `%${input.search ?? ""}%`),
+            input.since && gte(submissions.createdAt, input.since),
           ),
         orderBy: (submissions, { desc }) => [desc(submissions.createdAt)],
       });
+
+      console.log(sightings);
 
       return sightings ?? null;
     }),

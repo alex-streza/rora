@@ -2,11 +2,10 @@
 
 import { SignedIn } from "@clerk/nextjs";
 import { Image as ImageIcon, MagnifyingGlass } from "@phosphor-icons/react";
-import { ChatTeardropDots } from "@phosphor-icons/react/dist/ssr";
 import { distance, point } from "@turf/turf";
+import { motion } from "framer-motion";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import Image from "next/image";
-
 import { useEffect, useMemo, useState } from "react";
 import spacetime from "spacetime";
 import { useDebounceValue } from "usehooks-ts";
@@ -16,13 +15,14 @@ import { Drawer, DrawerContent } from "~/components/ui/drawer";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { viewStateAtom } from ".";
+import { Chat } from "./chat";
 import { SubmitSighting } from "./submit-sighting";
 import { userPositionAtom } from "./user-position";
-import { viewStateAtom } from ".";
 
 export const searchAtom = atom("");
 
-interface LocationInfo {
+export interface LocationInfo {
   display_name: string;
   address: {
     city?: string;
@@ -36,7 +36,7 @@ interface LocationInfo {
   };
 }
 
-function getPrettyLocationName(locationInfo: LocationInfo): string {
+export function getPrettyLocationName(locationInfo: LocationInfo): string {
   const { address } = locationInfo;
 
   // Priority order for local area name
@@ -62,7 +62,7 @@ function getPrettyLocationName(locationInfo: LocationInfo): string {
   return displayParts.slice(0, 3).join(", ");
 }
 
-async function getLocationInfo(
+export async function getLocationInfo(
   latitude: number,
   longitude: number,
 ): Promise<LocationInfo | null> {
@@ -97,7 +97,7 @@ export function SightingsDrawer() {
   });
 
   const sightings = useMemo(() => {
-    if (!data || !position) return null;
+    if (!position) return data ?? [];
 
     const point1 = point([position.coords.longitude, position.coords.latitude]);
 
@@ -130,28 +130,29 @@ export function SightingsDrawer() {
 
   return (
     <>
-      <Button
-        className={cn(
-          "absolute bottom-0 left-1.5 gap-2 transition-transform",
-          snap === "150px" ? "-translate-y-24" : "-translate-y-52",
-        )}
-        variant="secondary"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
       >
-        <ChatTeardropDots weight="duotone" size="24" /> Can I see the northern
-        lights?
-      </Button>
+        <Chat snap={snap} />
+      </motion.div>
       <SignedIn>
         <Dialog>
           <DialogTrigger asChild>
-            <Button
+            <motion.div
               className={cn(
-                "absolute bottom-0 right-1.5 rounded-full",
+                "absolute bottom-0 right-1.5",
                 snap === "150px" ? "-translate-y-24" : "-translate-y-52",
               )}
-              size="icon"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
             >
-              <ImageIcon weight="duotone" size="24" />
-            </Button>
+              <Button size="icon" className="rounded-full">
+                <ImageIcon weight="duotone" size="24" />
+              </Button>
+            </motion.div>
           </DialogTrigger>
           <DialogContent>
             <SubmitSighting location={prettyLocationName} />

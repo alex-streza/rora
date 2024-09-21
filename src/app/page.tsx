@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -12,6 +13,7 @@ import { SignInButton } from "./_components/auth/sign-in-button";
 import AuroraMap from "./_components/map";
 import { SightingsDrawer } from "./_components/map/drawer";
 import { Navigation } from "./_components/navigation";
+import { WelcomeDialog } from "./_components/welcome";
 
 export default async function Home() {
   return (
@@ -35,9 +37,12 @@ export default async function Home() {
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>
-                      This time you&apos;ll witness the aurora
-                    </DialogTitle>
+                    <DialogTitle>Witness the northern lights</DialogTitle>
+                    <DialogDescription>
+                      By logging in you&apos;ll be able to contribute with your
+                      own sightings so others can catch a glimpse of the evasive
+                      aurora.
+                    </DialogDescription>
                   </DialogHeader>
                   <SignInButton />
                 </DialogContent>
@@ -45,6 +50,7 @@ export default async function Home() {
             </div>
           </SignedOut>
         </div>
+        <WelcomeDialog />
         <SightingsDrawer />
       </main>
     </HydrateClient>
