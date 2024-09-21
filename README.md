@@ -1,29 +1,89 @@
-# Create T3 App
+![3x shots so 2 (1)](https://github.com/user-attachments/assets/1e998134-a075-4434-abda-ee3b00662b6f)
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+## Think/Imagine/Optimize
 
-## What's next? How do I make an app with this?
+Seeing the extremely evasive northern lights has gotten a lot prettier (and easier)
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+https://orora-x.vercel.app
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+> **Note**
+>
+> This project is optimized for mobile devices, everything works aokay on desktop it's just not responsive
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+<sup>Made for Supabase Launch Week 12 Hackathon.</sup>
 
-## Learn More
+Built with
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- [Supabase](https://supabase.com/)
+- [Vercel](https://vercel.com/)
+- [Next.JS](https://nextjs.org/)
+- [Mapbox](https://www.mapbox.com/)
+- [Clerk](https://clerk.com/)
+- [swpc.noaa API](https://services.swpc.noaa.gov)
+- [open-meteo API](https://api.open-meteo.com)
+- [nominatim](https://nominatim.openstreetmap.org)
+- [create-t3-app](https://create.t3.gg/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [TailwindCSS](https://tailwindcss.com/)
+- [framer-motion](https://www.framer.com/motion/)
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## How it works
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+> **Danger**
+>
+> Spoilers ahead, maybe try the app first!
+>
+> Let me first present how it works followed by some of the its inner workings since the UI isn't the only thing that's exceptional.
 
-## How do I deploy this?
+Orora let's you view community submitted northern lights sightings, real-time stats & the live aurora oval
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+1. Create an account with Google
+2. Ideally enable location for cloud coverage
+3. Zoom-out to see the aurora oval
+4. Zoom in to see submissions around you
+5. Submit your own and rinse and repeat!
+
+It uses a custom Mapbox style that matches the overall color scheme. All submissions are stored in Supabase Database. Users are created using clerk and synced into Supabase via a custom webhook.
+
+By zooming out and looking to the north and south of the globe you'll see the aurora oval, the area where the aurora is visible (if it's not cloudy). The brighter the color the more powerful the aurora at that spot.
+
+All over the map you'll see image markers, they northern lights sightings which can be viewed as well as distance to them.
+
+Every 15 minutes there's a Supabase pg cron job that updates the aurora oval geojson by sending a post request to a Supabase Edge Function that then updates the geojson stored in a Supabase Storage bucket.
+
+You can have a better experience by pressing the can i see the aurora button, which will then attempt to interpret the realtime stats.
+
+List of Supabase features used:
+
+- Database
+  - storing users, submissions
+- Storage
+  - storing aurora images, forecast geojson
+- Edge Functions
+  - function that uploads the new geojson to Storage
+- Cron
+  - update forecast geojson every 15 minutes
+- Net
+  - trigger edge function to update geojson
+- Local/Docker (don't think it counts)
+  - test locally edge functions
+
+## Motivation
+
+9 months ago me and catalina went to Iceland to see the northern lights, unfortunately we didn't have much knowledge about what those markers meant and despite the cloud coverage we still went and tried to see it, which was a somewhat costly decision. For a new season of trying to find the northern lights we wanted to build our own tool to better our chances. We're aware of some competitors (actual mobile apps) that are rather feature rich but we wanted to make a beautiful app that the superb northern lights actually deserve
+
+## Ideas for the future
+
+- Take photo on the spot instead of upload
+- Validate the submitted image
+- Improve map UI
+- Use more Supabase because it's supa'awesome
+
+## The team / contributors
+
+- alex-streza ([GitHub](https://github.com/alex-streza), [X](https://x.com/alex_streza))
+- catalina ([GitHub](https://github.com/welnic), [X](https://x.com/Catalina_Melnic)
+
+## Thanks to
+
+- [cata](https://twitter.com/Catalina_Melnic) for being my main source of inspiration for the app, configuring Supabase locally and edge function
