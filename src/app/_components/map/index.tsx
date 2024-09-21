@@ -50,7 +50,7 @@ const Layers = () => {
     }
 
     fetch(
-      "https://avpiytgvzfbbfmnmycdj.supabase.co/storage/v1/object/public/geojsons/forecast.geojson",
+      "https://avpiytgvzfbbfmnmycdj.supabase.co/storage/v1/object/public/geojsons/aurora_forecast.geojson",
     )
       .then((res) => res.json())
       .then((data: GeoJsonData) => {

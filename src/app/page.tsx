@@ -22,12 +22,12 @@ export default async function Home() {
           <Navigation />
           <SignedOut>
             <div className="bg-gradient-to-b from-card to-transparent p-5 pt-2">
-              <h1 className="mb-2 font-serif text-[37px] font-medium leading-[46px] text-primary-foreground">
-                Aurora notifications like never before
+              <h1 className="mb-2 font-serif text-4xl font-medium leading-[46px] text-primary-foreground">
+                This time you&apos;ll catch the northern lights
               </h1>
               <p className="mb-4 text-muted-foreground">
-                Beautiful northern lights sightings map, paired with awesome SMS
-                & e-mail notifications.
+                Beautiful northern lights sightings map, real-time statistics
+                and live aurora oval.
               </p>
               <Dialog>
                 <DialogTrigger asChild>
