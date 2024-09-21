@@ -191,7 +191,7 @@ export const SubmitSighting = ({
           </div>
         )}
       </div>
-      {!url && (
+      {!url && position && (
         <DialogClose className="w-full" disabled={!file}>
           <Button
             className="w-full rounded-full"
