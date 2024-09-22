@@ -19,7 +19,7 @@ export default async function Home() {
   return (
     <HydrateClient>
       <main className="relative mx-auto h-screen w-full max-w-md overflow-hidden border-border bg-card md:border-x">
-        {/* <AuroraMap /> */}
+        <AuroraMap />
         <div className="relative">
           <Navigation />
           <SignedOut>
