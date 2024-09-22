@@ -9,6 +9,22 @@ export const userPositionAtom = atom<GeolocationPosition | null>(null);
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
+export const useNavigatorPermission = () => {
+  const [permission, setPermission] = useState<string | undefined>(undefined);
+  const [disabled, setDisabled] = useState(false);
+
+  useEffect(() => {
+    void navigator.permissions
+      .query({ name: "geolocation" })
+      .then((permissionStatus) => {
+        setPermission(permissionStatus.state);
+        setDisabled(permissionStatus.state !== "granted");
+      });
+  }, []);
+
+  return { permission, disabled };
+};
+
 export const usePosition = () => {
   const [position, setPosition] = useAtom(userPositionAtom);
   const [loading, setLoading] = useState(false);

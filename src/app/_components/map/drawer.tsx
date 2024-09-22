@@ -134,31 +134,28 @@ export function SightingsDrawer() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
+        className="content absolute bottom-0 left-0 flex w-full justify-between p-1.5"
       >
-        <Chat snap={snap} />
+        <Chat />
+        <SignedIn>
+          <Dialog>
+            <DialogTrigger asChild>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Button size="icon" className="rounded-full">
+                  <ImageIcon weight="duotone" size="24" />
+                </Button>
+              </motion.div>
+            </DialogTrigger>
+            <DialogContent>
+              <SubmitSighting location={prettyLocationName} />
+            </DialogContent>
+          </Dialog>
+        </SignedIn>
       </motion.div>
-      <SignedIn>
-        <Dialog>
-          <DialogTrigger asChild>
-            <motion.div
-              className={cn(
-                "absolute bottom-0 right-1.5",
-                snap === "150px" ? "-translate-y-24" : "-translate-y-52",
-              )}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Button size="icon" className="rounded-full">
-                <ImageIcon weight="duotone" size="24" />
-              </Button>
-            </motion.div>
-          </DialogTrigger>
-          <DialogContent>
-            <SubmitSighting location={prettyLocationName} />
-          </DialogContent>
-        </Dialog>
-      </SignedIn>
       <Drawer
         snapPoints={["150px", "260px", 1]}
         activeSnapPoint={snap}

@@ -46,8 +46,6 @@
   }
 }
 
-@supports (env(safe-area-inset-top)) {
-  .content {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+.content {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 208px);
 }

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Hash, Cloud, Sun, CaretDown, ArrowRight } from "@phosphor-icons/react";
 import { cn } from "~/lib/utils";
 import { useSpaceData } from "~/lib/useSpaceData";
 import { usePosition } from "./user-position";
+import useMeasure from "react-use-measure";
 
 interface SpaceDataTableProps {
   inline?: boolean;
@@ -150,73 +151,134 @@ export const SpaceDataTable = ({ inline = false }: SpaceDataTableProps) => {
   const [expanded, setExpanded] = React.useState(inline);
   const { kpi, cloudCoverage, solarWindSpeed } = useSpaceData();
   const { position } = usePosition();
+  const [elementRef, bounds] = useMeasure();
 
   return (
     <motion.div
       className={cn(
-        "border border-border bg-input px-3 py-3 text-xs text-muted-foreground",
-        expanded ? "w-60 rounded-xl" : "rounded-full",
+        "max-w-lg cursor-pointer rounded-2xl border border-border bg-input p-3 text-xs text-muted-foreground",
         !inline && "absolute right-20 top-5",
       )}
       onClick={() => !inline && setExpanded(!expanded)}
+      whileTap={{ scale: 0.98 }}
+      animate={{
+        height: bounds.height + 24,
+      }}
+      layoutId={!inline ? "data-inline" : undefined}
     >
-      {!inline && (
-        <div className="flex items-center justify-between gap-2">
-          <span>Real-time space data</span>
-          <CaretDown size={16} />
-        </div>
-      )}
-      {expanded && (
-        <div className={cn("flex flex-col gap-3", !inline && "mt-2")}>
-          <div className="flex justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm">
-                <Hash size={20} weight="duotone" className="text-[#7AEBC6]" />
-                KP Index
-              </div>
-              <span className="text-start">{getKpIndexDescription(kpi)}</span>
-            </div>
-            <span className="text-sm">{kpi}</span>
-          </div>
-          <div className="flex justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm">
-                <Cloud size={20} weight="duotone" className="text-[#7AEBC6]" />
-                Cloud coverage
-              </div>
-              <span>
-                {!position ? (
-                  <span className="flex items-center gap-1">
-                    Enable GPS location
-                    <ArrowRight size={14} className="-rotate-[35deg]" />
-                  </span>
-                ) : cloudCoverage > 50 ? (
-                  "a bit too high to be fair"
-                ) : cloudCoverage >= 0 ? (
-                  "you should be able to see it"
-                ) : (
-                  "no"
-                )}
-              </span>
-            </div>
-            <WaveText
-              text={!position ? "?" : `${cloudCoverage}%`}
-              waveHeight={mapRange(cloudCoverage, 100, 0, 12, -4)}
-              color={!position ? "#C81D1D" : undefined}
-            />
-          </div>
-          <div className="flex justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-sm">
-                <Sun size={20} weight="duotone" className="text-[#7AEBC6]" />
-                Solar Wind Speed
-              </div>
-              <span>the faster the better</span>
-            </div>
-            <span className="text-sm">{solarWindSpeed}km/s</span>
-          </div>
-        </div>
-      )}
+      <div className="inner" ref={elementRef}>
+        <AnimatePresence mode="sync">
+          {!expanded && !inline && (
+            <motion.div
+              className="flex items-center gap-2"
+              layoutId="data-title-container"
+            >
+              <motion.span layoutId="data-title">
+                Real-time space data
+              </motion.span>
+              <motion.span layoutId="data-caret">
+                <CaretDown size={16} />
+              </motion.span>
+            </motion.div>
+          )}
+          {expanded && (
+            <>
+              {!inline && (
+                <motion.div
+                  className="flex items-center justify-between"
+                  layoutId="data-title-container"
+                >
+                  <motion.span layoutId="data-title">
+                    Real-time space data
+                  </motion.span>
+                  <motion.span layoutId="data-caret">
+                    <CaretDown size={16} />
+                  </motion.span>
+                </motion.div>
+              )}
+              <motion.div
+                className={cn("flex flex-col gap-3", !inline && "mt-2")}
+                initial={{ opacity: 0, y: -20, x: 20 }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  x: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  y: -20,
+                  x: 20,
+                }}
+                transition={{
+                  delay: 0.2,
+                }}
+              >
+                <div className="flex justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Hash
+                        size={20}
+                        weight="duotone"
+                        className="text-[#7AEBC6]"
+                      />
+                      KP Index
+                    </div>
+                    <span className="text-start">
+                      {getKpIndexDescription(kpi)}
+                    </span>
+                  </div>
+                  <span className="text-sm">{kpi}</span>
+                </div>
+                <div className="flex justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Cloud
+                        size={20}
+                        weight="duotone"
+                        className="text-[#7AEBC6]"
+                      />
+                      Cloud coverage
+                    </div>
+                    <span>
+                      {!position ? (
+                        <span className="flex items-center gap-1">
+                          Enable GPS location
+                          <ArrowRight size={14} className="-rotate-[35deg]" />
+                        </span>
+                      ) : cloudCoverage > 50 ? (
+                        "a bit too high to be fair"
+                      ) : cloudCoverage >= 0 ? (
+                        "you should be able to see it"
+                      ) : (
+                        "no"
+                      )}
+                    </span>
+                  </div>
+                  <WaveText
+                    text={!position ? "?" : `${cloudCoverage}%`}
+                    waveHeight={mapRange(cloudCoverage, 0, 100, 6, -4)}
+                    color={!position ? "#C81D1D" : undefined}
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Sun
+                        size={20}
+                        weight="duotone"
+                        className="text-[#7AEBC6]"
+                      />
+                      Solar Wind Speed
+                    </div>
+                    <span>the faster the better</span>
+                  </div>
+                  <span className="text-sm">{solarWindSpeed}km/s</span>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };
